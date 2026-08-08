@@ -115,3 +115,7 @@ src/
   styles/        global.css (the design system)
   types/         shared domain types
 ```
+
+---
+
+Made with ❤️‍🩹 by [vardhan](https://github.com/vardhan23v)
