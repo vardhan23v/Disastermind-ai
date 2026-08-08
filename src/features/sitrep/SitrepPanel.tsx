@@ -114,7 +114,7 @@ export function SitrepPanel() {
         </table>
       </div>
 
-      <button className="btn primary" onClick={() => downloadSitrepPdf(d)}>
+      <button className="btn primary" onClick={() => void downloadSitrepPdf(d)}>
         ⬇ Download SITREP PDF
       </button>
     </div>

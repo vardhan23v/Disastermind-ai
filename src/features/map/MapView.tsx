@@ -24,6 +24,7 @@ import { worldRng, SEED } from '@/utils/seededRandom';
 import { floodDepthAt } from '@/simulation/forecast';
 import { buildRoads, buildZones, RIVER_PATH } from '@/data/city';
 import { pointInPolygon, pointOnPath } from '@/utils/geo';
+import { applyTileError } from '@/utils/tileFallback';
 
 const W = CITY.widthM;
 const H = CITY.heightM;
@@ -86,6 +87,7 @@ export function MapView() {
   const [viewScale, setViewScale] = useState(1);
   const [tip, setTip] = useState<{ x: number; y: number; content: string } | null>(null);
   const [pinned, setPinned] = useState(false);
+  const [tilesFailed, setTilesFailed] = useState(false);
   const lastScaleRef = useRef(0);
 
   useEffect(() => {
@@ -98,10 +100,22 @@ export function MapView() {
       maxZoom: 16,
     });
     mapRef.current = map;
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       subdomains: 'abcd',
       maxZoom: 20,
     }).addTo(map);
+    let tileFailures = 0;
+    let fallbackEngaged = false;
+    tiles.on('tileerror', () => {
+      if (fallbackEngaged) return;
+      const s = applyTileError(tileFailures);
+      tileFailures = s.failures;
+      if (s.active) {
+        fallbackEngaged = true;
+        tiles.remove();
+        setTilesFailed(true);
+      }
+    });
     L.svgOverlay(svgRef.current, CITY_BOUNDS).addTo(map);
     map.fitBounds(CITY_BOUNDS, { padding: [18, 18] });
 
@@ -220,6 +234,13 @@ export function MapView() {
     <div className="map-stack">
       <div className="map-wrap">
         <div className="map-leaf" ref={mapRootRef} />
+        {tilesFailed && (
+          <div className="map-fallback" aria-hidden="true">
+            <div className="of-land" />
+            <div className="of-sea" />
+            <div className="of-note">OFFLINE BACKDROP — TILE SOURCE UNREACHABLE</div>
+          </div>
+        )}
       <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="sim-overlay">
         <BaseLayers world={world} layers={layers} inv={inv} />
         {layers.flood && <FloodLayer world={world} layers={layers} flood={flood} forecast={isForecast} />}

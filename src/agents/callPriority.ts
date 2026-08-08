@@ -10,15 +10,21 @@ export function runCallPriority(world: WorldState, tick: number): AgentResult {
   const out = emptyResult();
 
   for (const sos of world.sos) {
-    if (sos.status !== 'pending') continue;
+    if (sos.status === 'resolved') continue;
+    if (sos.triageSignalSent) continue;
     const scored = scoreSos(sos, tick);
-    if (scored.urgency !== sos.urgency || scored.reason !== sos.reason) {
-      // engine writes score back; here we only emit notable messages
-    }
-    if (scored.urgency >= 9 && (sos.urgency < 9 || sos.createdAtTick === tick)) {
+    if (scored.urgency >= 9) {
+      sos.triageSignalSent = true;
       out.messages.push({
-        to: 'call-priority',
-        kind: { kind: 'sos', sosId: sos.id, zone: sos.zone, urgency: scored.urgency },
+        to: 'resource',
+        kind: {
+          kind: 'sos-alert',
+          sosId: sos.id,
+          sosKind: sos.kind,
+          zone: sos.zone,
+          peopleCount: sos.peopleCount,
+          urgency: scored.urgency,
+        },
         confidence: Math.round(80 + scored.urgency),
         why: scored.reason,
       });

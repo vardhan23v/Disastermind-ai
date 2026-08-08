@@ -65,7 +65,7 @@ export function runDecisionSupport(world: WorldState, tick: number): AgentResult
       approvedAtTick: -1,
     });
     out.messages.push({
-      to: 'decision-support',
+      to: 'resource',
       kind: { kind: 'rec', recId: `rec-${tick}-1` },
       confidence: 94,
       why: 'Fused 4 agent signals; expected casualties prevented ≈ 120 if executed within 30 min.',
@@ -101,7 +101,7 @@ export function runDecisionSupport(world: WorldState, tick: number): AgentResult
       approvedAtTick: -1,
     });
     out.messages.push({
-      to: 'decision-support',
+      to: 'resource',
       kind: { kind: 'rec', recId: `rec-${tick}-2` },
       confidence: 88,
       why: 'Satellite confirmation + flood model + resource availability aligned.',

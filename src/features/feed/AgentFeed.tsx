@@ -1,20 +1,30 @@
 // Agent Collaboration Feed — the visible multi-agent message stream.
+// Consecutive messages from the same agent pair + category collapse into
+// expandable groups (+N more). Grouping stays pure in utils/feedGrouping.
 
 import { useMemo, useState } from 'react';
 import { AGENT_META } from '@/constants';
-import type { AgentId, AgentMessage } from '@/types';
+import type { AgentId, AgentMessage, SosKind } from '@/types';
 import { useSimulation } from '@/store/simulationStore';
 import { formatClock } from '@/utils/geo';
 import { TICK_MINUTES } from '@/constants';
+import { groupConsecutive } from '@/utils/feedGrouping';
+
+const SOS_KIND_LABEL: Record<SosKind, string> = {
+  trapped: 'trapped on rooftops',
+  medical: 'need medical care',
+  fire: 'fire reported',
+  food: 'need food support',
+  infrastructure: 'report infrastructure damage',
+};
 
 export function AgentFeed({ compact }: { compact?: boolean }) {
   const messages = useSimulation((s) => s.world.messages);
   const [filter, setFilter] = useState<AgentId | 'all'>('all');
-  const [expanded, setExpanded] = useState<string | null>(null);
 
-  const shown = useMemo(() => {
+  const groups = useMemo(() => {
     const list = filter === 'all' ? messages : messages.filter((m) => m.from === filter);
-    return [...list].reverse();
+    return groupConsecutive([...list].reverse());
   }, [messages, filter]);
 
   return (
@@ -35,30 +45,24 @@ export function AgentFeed({ compact }: { compact?: boolean }) {
         ))}
       </div>
 
-      {shown.length === 0 && <div className="empty-state">Agent bus silent. Simulate a cyclone to see agents collaborate.</div>}
+      {groups.length === 0 && <div className="empty-state">Agent bus silent. Simulate a cyclone to see agents collaborate.</div>}
 
-      {shown.slice(0, compact ? 40 : 60).map((m) => (
-        <MessageRow key={m.id} message={m} expanded={expanded === m.id} onToggle={() => setExpanded(expanded === m.id ? null : m.id)} />
+      {groups.slice(0, compact ? 40 : 60).map((g) => (
+        <GroupCard key={g[0].id} group={g} />
       ))}
     </div>
   );
 }
 
-function MessageRow({
-  message,
-  expanded,
-  onToggle,
-}: {
-  message: AgentMessage;
-  expanded: boolean;
-  onToggle: () => void;
-}) {
-  const from = AGENT_META[message.from];
-  const to = AGENT_META[message.to];
-  const chip = message.confidence >= 80 ? 'high' : message.confidence >= 60 ? 'mid' : 'low';
+function GroupCard({ group }: { group: ReturnType<typeof groupConsecutive>[number] }) {
+  const [open, setOpen] = useState(false);
+  const first = group[0];
+  const more = group.length - 1;
+  const from = AGENT_META[first.from];
+  const to = AGENT_META[first.to];
 
   return (
-    <div className="msg" style={{ borderLeftColor: from.color }} onClick={onToggle}>
+    <div className="msg" style={{ borderLeftColor: from.color }}>
       <div className="flow">
         <span className="agent-tag" style={{ background: from.color }}>
           {from.short}
@@ -67,14 +71,30 @@ function MessageRow({
         <span className="agent-tag" style={{ background: to.color }}>
           {to.short}
         </span>
-        <span style={{ marginLeft: 'auto' }}>{formatClock(message.tick * TICK_MINUTES)}</span>
+        <span style={{ marginLeft: 'auto' }}>{formatClock(first.tick * TICK_MINUTES)}</span>
       </div>
-      <div className="headline">{headlineOf(message)}</div>
+      <div className="headline">{headlineOf(first)}</div>
       <div className="meta">
-        <span className={`conf ${chip}`}>{message.confidence}%</span>
-        <span style={{ fontSize: 10, color: 'var(--text-faint)' }}>{expanded ? '▲ why' : '▼ why'}</span>
+        <span className={`conf ${first.confidence >= 80 ? 'high' : first.confidence >= 60 ? 'mid' : 'low'}`}>
+          {first.confidence}%
+        </span>
+        {more > 0 && (
+          <button className="grp-more" onClick={() => setOpen((o) => !o)}>
+            {open ? 'collapse' : `+${more} more`}
+          </button>
+        )}
       </div>
-      {expanded && <div className="why">{message.why}</div>}
+      {open && (
+        <div className="group-body">
+          {group.slice(1).map((m) => (
+            <div className="group-sub" key={m.id}>
+              <span>{headlineOf(m)}</span>
+              <span className="whys">{formatClock(m.tick * TICK_MINUTES)}</span>
+            </div>
+          ))}
+          <div className="why">{first.why}</div>
+        </div>
+      )}
     </div>
   );
 }
@@ -90,7 +110,11 @@ function headlineOf(m: AgentMessage): string {
     case 'capacity':
       return `${m.kind.facility} — ${m.kind.pct}% full · near: ${m.kind.near.join(', ')}`;
     case 'sos':
-      return m.kind.urgency >= 9 ? `NEW priority signal — urgency ${m.kind.urgency}/10` : `Signal geolocated to Zone ${m.kind.zone}`;
+      return `Signal geolocated to Zone ${m.kind.zone}`;
+    case 'sos-alert': {
+      const label = SOS_KIND_LABEL[m.kind.sosKind];
+      return `${m.kind.peopleCount} ${label} in Zone ${m.kind.zone} — urgency ${m.kind.urgency}/10`;
+    }
     case 'shelter-fit':
       return `Shelter fit — ${m.kind.shelterId} at ${m.kind.fill}%`;
     case 'hazard':

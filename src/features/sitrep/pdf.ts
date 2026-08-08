@@ -1,10 +1,12 @@
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import type { SitrepData } from '@/types';
 import { formatClock } from '@/utils/geo';
 import { TICK_MINUTES } from '@/constants';
 
-export function downloadSitrepPdf(data: SitrepData): void {
+export async function downloadSitrepPdf(data: SitrepData): Promise<void> {
+  const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+    import('jspdf'),
+    import('jspdf-autotable'),
+  ]);
   const doc = new jsPDF();
   const tick = data.generatedAtTick;
 

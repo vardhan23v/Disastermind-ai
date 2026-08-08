@@ -41,6 +41,16 @@ The system keeps humans in control:
 | --- | --- |
 | ![Chief AI recommendation](./public/screenshots/chief-ai-recommendation.png) | ![Post-disaster ops](./public/screenshots/post-disaster-ops.png) |
 
+## Demo
+
+![Demo walkthrough](./docs/demo.gif)
+
+One click starts the whole cascade:
+
+1. **Click "▶ Simulate Cyclone"** — the deterministic mission clock starts at 06:00 with 44 scripted ticks.
+2. **Watch the incident unfold live** — rain strengthens, floods spread across the map, roads flood and re-route, SOS calls arrive, and the fleet redeploys on its own.
+3. **Close the loop** — Chief AI recommends evacuation and boats; the commander approves; shelters open; a final SITREP is generated for download.
+
 ---
 
 ## The 10 Agents
@@ -109,7 +119,13 @@ npm run preview  # serve the production build locally
 
 ## Architecture
 
-The data flow is a deliberate unidirectional loop:
+Data flows one way, end to end:
+
+```
+world data ──► agents ──► event bus ──► chief AI ──► dispatch ──► map · feed · analytics
+```
+
+In practice the loop is a single authoritative clock:
 
 ```
 setInterval → simulationStore(tickWorld) → WorldState
@@ -120,7 +136,7 @@ setInterval → simulationStore(tickWorld) → WorldState
               │              │               │
               └──────────────┴───────────────┘
                                               │
-                       React features (map, ops, sitrep, timeline)
+                       React features (map, ops, feed, timeline)
 ```
 
 ### Simulation core — `src/simulation/`

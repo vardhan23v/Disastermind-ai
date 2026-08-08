@@ -152,6 +152,7 @@ export interface SosIncident {
   status: SosStatus;
   vehicleId?: string;
   source: SosSource;
+  triageSignalSent?: boolean;
 }
 
 export interface SocialPost {
@@ -220,6 +221,7 @@ export type AgentMessageKind =
   | { kind: 'route'; plan: RoutePlan; causedBy: string }
   | { kind: 'capacity'; facility: string; pct: number; near: string[] }
   | { kind: 'sos'; sosId: string; zone: ZoneId; urgency: number }
+  | { kind: 'sos-alert'; sosId: string; sosKind: SosKind; zone: ZoneId; peopleCount: number; urgency: number }
   | { kind: 'shelter-fit'; shelterId: string; fill: number }
   | { kind: 'hazard'; hitId: string; label: string }
   | { kind: 'rec'; recId: string }
