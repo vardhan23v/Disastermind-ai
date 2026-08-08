@@ -4,6 +4,17 @@ An emergency operations center (EOC) digital-twin dashboard for a synthetic coas
 
 **Live demo:** https://disastermind-ai.vercel.app
 
+[![React](https://img.shields.io/badge/React-18.x-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Zustand](https://img.shields.io/badge/Zustand-4-8B5CF6?style=for-the-badge&logo=zustand&logoColor=white)](https://zustand-demo.pmnd.rs/)
+[![Leaflet](https://img.shields.io/badge/Leaflet-1.9-199900?style=for-the-badge&logo=leaflet&logoColor=white)](https://leafletjs.com/)
+[![Recharts](https://img.shields.io/badge/Recharts-2-22B8CF?style=for-the-badge&logo=recharts&logoColor=white)](https://recharts.org/)
+[![Vitest](https://img.shields.io/badge/Vitest-1-72B149?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![jsPDF](https://img.shields.io/badge/jsPDF-2-5B5B5B?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](https://github.com/parallax/jsPDF)
+
+---
+
 ## Overview
 
 DisasterMind AI simulates the hours around a severe cyclonic storm making landfall near a city. The simulation advances in fixed ticks (one tick = 5 simulated minutes), and a set of decision agents transform the raw world state into operational intelligence: dispatch decisions, fleet movement, shelter occupancy, resource pressure, hazard forecasts, and bilingual citizen reports.
