@@ -57,7 +57,7 @@ export const useSimulation = create<SimStore>()((set, get) => ({
 
   start: () => {
     const s = get();
-    if (s.world.running || s.world.tick >= DEMO_TICKS) return;
+    if (s.world.tick >= DEMO_TICKS) return;
     clearTimer();
     set({ world: { ...s.world, running: true } });
     const step = () => {
