@@ -5,11 +5,14 @@ import {
   SITREP_MIN_TICK,
   TICK_INTERVAL_MS,
 } from '@/constants';
-import type { LayerKey, SpeedMult, Toast, UiState, WorldState } from '@/types';
+import type { HazardId, LayerKey, SpeedMult, Toast, UiState, WorldState } from '@/types';
 import { createInitialWorld, tickWorld } from '@/simulation/engine';
 import { buildSitrep } from '@/simulation/sitrep';
 import { dispatchNearestToSos, executeRecommendation } from '@/simulation/dispatch';
 import { scoreSos } from '@/agents/callPriority';
+import { scenarioFor } from '@/hazards/registry';
+import { hazardDefOf } from '@/hazards/definitions';
+import { tickHazardWorld } from '@/hazards/runner';
 
 export interface SimStore {
   world: WorldState;
@@ -18,6 +21,7 @@ export interface SimStore {
   start: () => void;
   pause: () => void;
   reset: () => void;
+  setHazard: (hazard: HazardId) => void;
   setSpeed: (speed: SpeedMult) => void;
   setTab: (tab: UiState['tab']) => void;
   toggleLayer: (key: LayerKey) => void;
@@ -39,7 +43,19 @@ function clearTimer(): void {
   }
 }
 
-const freshWorld = (): WorldState => createInitialWorld();
+const freshWorld = (hazard: HazardId = 'cyclone'): WorldState => {
+  const w = createInitialWorld();
+  w.hazard = hazard;
+  const scenario = scenarioFor(hazard);
+  if (scenario) scenario.seedWorld(w);
+  return w;
+};
+
+/** Number of ticks a hazard runs before auto-stopping. */
+const runTicks = (hazard: HazardId): number => {
+  const scenario = scenarioFor(hazard);
+  return scenario ? scenario.definition.durationTicks : DEMO_TICKS;
+};
 
 const initialUi = (): UiState => ({
   layers: { ...DEFAULT_LAYERS },
@@ -57,17 +73,19 @@ export const useSimulation = create<SimStore>()((set, get) => ({
 
   start: () => {
     const s = get();
-    if (s.world.tick >= DEMO_TICKS) return;
+    const maxTicks = runTicks(s.world.hazard);
+    if (s.world.tick >= maxTicks) return;
     clearTimer();
     set({ world: { ...s.world, running: true } });
     const step = () => {
       const st = get();
-      if (st.world.tick >= DEMO_TICKS) {
+      if (st.world.tick >= maxTicks) {
         clearTimer();
         set({ world: { ...st.world, running: false } });
         return;
       }
-      const next = tickWorld(st.world);
+      const scenario = scenarioFor(st.world.hazard);
+      const next = scenario ? tickHazardWorld(st.world, scenario) : tickWorld(st.world);
       const toasts: Toast[] = [];
       for (const e of next.timeline) {
         if (e.tick === next.tick && (e.severity === 'warning' || e.severity === 'critical')) {
@@ -90,7 +108,15 @@ export const useSimulation = create<SimStore>()((set, get) => ({
 
   reset: () => {
     clearTimer();
-    set({ world: freshWorld(), ui: initialUi() });
+    const s = get();
+    set({ world: freshWorld(s.world.hazard), ui: initialUi() });
+  },
+
+  setHazard: (hazard) => {
+    clearTimer();
+    const layers = { ...DEFAULT_LAYERS };
+    for (const l of hazardDefOf(hazard).layers) layers[l.key] = true;
+    set({ world: freshWorld(hazard), ui: { ...initialUi(), layers }, speed: 1 });
   },
 
   setSpeed: (speed) => {

@@ -8,6 +8,7 @@ import type { WorldState } from '@/types';
 
 export function runDecisionSupport(world: WorldState, tick: number): AgentResult {
   const out = emptyResult();
+  if (world.hazard !== 'cyclone') return out;
   const exists = (title: string): boolean =>
     world.recommendations.some((r) => r.title === title);
 

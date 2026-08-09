@@ -4,10 +4,22 @@
 import { AgentFeed } from '@/features/feed/AgentFeed';
 import { ChiefPanel } from '@/features/chief/ChiefPanel';
 import { MissionPanel } from '@/features/mission/MissionPanel';
+import { HazardOverview } from '@/features/hazard/HazardOverview';
 
 export function OpsColumn() {
   return (
     <div className="ops-col">
+      <section className="ops-card ops-hazard">
+        <div className="ops-head amber">
+          <span className="ops-dot" />
+          SCENARIO OVERVIEW
+          <span className="ops-sub">active hazard · playbook</span>
+        </div>
+        <div className="ops-scroll">
+          <HazardOverview />
+        </div>
+      </section>
+
       <section className="ops-card ops-feed">
         <div className="ops-head">
           <span className="ops-dot" />

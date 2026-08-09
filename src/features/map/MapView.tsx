@@ -7,6 +7,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { CITY, EXTRA_LAYERS, PRIMARY_LAYERS, STORM_PATH, ZONE_META, ZONE_IDS } from '@/constants';
+import { HazardOverlay } from '@/features/map/HazardOverlay';
+import { hazardDefOf } from '@/hazards/definitions';
 import type {
   CityPoint,
   Hospital,
@@ -264,6 +266,7 @@ export function MapView() {
         {layers.social && <PostsLayer world={world} />}
         {layers.satellite && <HitsLayer world={world} />}
         {layers.weather && <WeatherLayer world={world} shownTick={shownTick} inv={inv} />}
+        <HazardOverlay world={world} />
         {(layers.ambulances || layers.boats || layers.drones || layers.relief) && (
           <VehiclesLayer
             vehicles={world.vehicles.filter(
@@ -1501,6 +1504,8 @@ function unitTip(u: UnitStation): string {
 function LayerToggles() {
   const layers = useSimulation((s) => s.ui.layers);
   const toggleLayer = useSimulation((s) => s.toggleLayer);
+  const world = useSimulation((s) => s.world);
+  const hazardLayers = hazardDefOf(world.hazard).layers;
   return (
     <div className="layer-list hud-card">
       <div className="hud-heading">EOC LAYERS</div>
@@ -1521,6 +1526,19 @@ function LayerToggles() {
           </div>
         ))}
       </div>
+      {hazardLayers.length > 0 && (
+        <>
+          <div className="hud-heading sub">HAZARD {hazardDefOf(world.hazard).icon}</div>
+          <div className="layer-grid">
+            {hazardLayers.map((m) => (
+              <div key={m.key} className={`layer-row ${layers[m.key] ? 'on' : 'off'}`} onClick={() => toggleLayer(m.key)}>
+                <span className="swatch" />
+                {m.icon} {m.label}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

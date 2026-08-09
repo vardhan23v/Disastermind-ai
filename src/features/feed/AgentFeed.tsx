@@ -54,12 +54,14 @@ export function AgentFeed({ compact }: { compact?: boolean }) {
   );
 }
 
+const FALLBACK_META = { label: 'Specialist', color: '#94a3b8', short: 'SP' };
+
 function GroupCard({ group }: { group: ReturnType<typeof groupConsecutive>[number] }) {
   const [open, setOpen] = useState(false);
   const first = group[0];
   const more = group.length - 1;
-  const from = AGENT_META[first.from];
-  const to = AGENT_META[first.to];
+  const from = AGENT_META[first.from] ?? FALLBACK_META;
+  const to = AGENT_META[first.to] ?? FALLBACK_META;
 
   return (
     <div className="msg" style={{ borderLeftColor: from.color }}>

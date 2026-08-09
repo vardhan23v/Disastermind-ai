@@ -2,7 +2,7 @@
 
 export type ZoneId = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 export type AlertLevel = 'green' | 'yellow' | 'orange' | 'red' | 'purple';
-export type Phase = 'standby' | 'storm-watch' | 'heavy-rain' | 'flood' | 'crisis' | 'recovery';
+export type Phase = 'standby' | 'storm-watch' | 'heavy-rain' | 'flood' | 'crisis' | 'recovery' | 'active';
 export type VehicleKind = 'ambulance' | 'boat' | 'drone' | 'relief';
 export type UnitKind = 'fire' | 'police';
 export type UnitStatus = 'ready' | 'deployed';
@@ -20,7 +20,14 @@ export type AgentId =
   | 'call-priority'
   | 'shelter'
   | 'decision-support'
-  | 'report';
+  | 'report'
+  | 'seismic'
+  | 'structural'
+  | 'marine'
+  | 'fire'
+  | 'heat'
+  | 'drought'
+  | 'tornado';
 export type AlertSeverity = 'info' | 'warning' | 'critical' | 'restore';
 export type RecStatus = 'pending' | 'approved' | 'rejected';
 export type RecActionKind = 'evacuate' | 'deploy' | 'open-shelter' | 'close-road' | 'alert';
@@ -41,8 +48,25 @@ export type LayerKey =
   | 'sos'
   | 'social'
   | 'satellite'
-  | 'routes';
+  | 'routes'
+  | 'hazard'
+  | 'hazardZone'
+  | 'hazardPath'
+  | 'hazardHeat'
+  | 'hazardPoints';
 export type SpeedMult = 1 | 2 | 4;
+
+/** The nine supported disaster scenarios. */
+export type HazardId =
+  | 'earthquake'
+  | 'volcano'
+  | 'tsunami'
+  | 'flood'
+  | 'cyclone'
+  | 'tornado'
+  | 'wildfire'
+  | 'drought'
+  | 'heatwave';
 
 export interface CityPoint {
   x: number;
@@ -266,6 +290,7 @@ export interface DamageState {
 
 export interface SitrepData {
   generatedAtTick: number;
+  hazard: { id: string; name: string; icon: string; category: string };
   timeline: TimelineEntry[];
   resourcesDeployed: string[];
   sosHandled: number;
@@ -289,6 +314,9 @@ export interface WorldState {
   running: boolean;
   phase: Phase;
   alert: AlertLevel;
+  hazard: HazardId;
+  /** Hazard-specific numeric metrics, keyed by the active scenario. */
+  hazardMetrics: Record<string, number>;
   rainfallMmHr: number;
   riverPct: number;
   windKmh: number;

@@ -20,7 +20,7 @@ export async function downloadSitrepPdf(data: SitrepData): Promise<void> {
   doc.setFontSize(10);
   doc.setTextColor(120, 200, 220);
   doc.text(
-    `Generated ${formatClock(6 * 60 + tick * TICK_MINUTES)} (tick ${tick}) · Local simulation · Demo data`,
+    `${data.hazard.icon} ${data.hazard.name} — Generated ${formatClock(6 * 60 + tick * TICK_MINUTES)} (tick ${tick}) · Local simulation · Demo data`,
     14,
     27
   );

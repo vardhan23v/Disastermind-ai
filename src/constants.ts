@@ -50,6 +50,13 @@ export const AGENT_META: Record<
   shelter: { label: 'Shelter Recommendation', color: '#2dd4bf', short: 'SH' },
   'decision-support': { label: 'Decision Support · Chief AI', color: '#fbbf24', short: 'CH' },
   report: { label: 'Government Report', color: '#94a3b8', short: 'GR' },
+  seismic: { label: 'Seismology Intelligence', color: '#f87171', short: 'SE' },
+  structural: { label: 'Structure Integrity', color: '#d97706', short: 'ST' },
+  marine: { label: 'Marine & Coastal Watch', color: '#38bdf8', short: 'MA' },
+  fire: { label: 'Fire Behaviour Analytics', color: '#fb923c', short: 'FB' },
+  heat: { label: 'Thermal Risk Monitor', color: '#f43f5e', short: 'TH' },
+  drought: { label: 'Dry Spell Monitor', color: '#facc15', short: 'DS' },
+  tornado: { label: 'Mesocyclone Track', color: '#c084fc', short: 'TO' },
 };
 
 export const SOS_META: Record<
@@ -104,6 +111,11 @@ export const DEFAULT_LAYERS: Record<LayerKey, boolean> = {
   social: false,
   satellite: true,
   routes: true,
+  hazard: true,
+  hazardZone: true,
+  hazardPath: true,
+  hazardHeat: true,
+  hazardPoints: true,
 };
 
 export const HOSPITAL_COUNT = 15;

@@ -68,6 +68,8 @@ export function createInitialWorld(): WorldState {
     running: false,
     phase: 'standby' as Phase,
     alert: 'green',
+    hazard: 'cyclone',
+    hazardMetrics: cycloneMetrics(0),
     rainfallMmHr: 2,
     riverPct: 46,
     windKmh: 18,
@@ -136,6 +138,7 @@ export function tickWorld(prev: WorldState): WorldState {
   next.stormOnscreen = tick <= 34;
   next.alert = alertAt(tick);
   next.phase = phaseAt(tick) as Phase;
+  next.hazardMetrics = cycloneMetrics(tick);
 
   // flood state
   next.flood = ZONE_IDS.map((z) => fx(z, tick));
@@ -303,7 +306,18 @@ function fx(zone: ZoneId, tick: number): FloodFx {
   return { ...f, fill: fillFor(f.depthM) };
 }
 
-function pendingPriority(w: WorldState): SosIncident[] {
+function cycloneMetrics(tick: number): Record<string, number> {
+  const fx0 = ZONE_IDS.map((z) => floodFx(z, tick));
+  return {
+    windKmh: windAt(tick),
+    rainfallMmHr: rainfallAt(tick),
+    riverPct: riverAt(tick),
+    floodDepthM: Math.max(0, ...fx0.map((f) => f.depthM)),
+    floodedRoadsKm: 0,
+  };
+}
+
+export function pendingPriority(w: WorldState): SosIncident[] {
   return w.sos
     .filter((s) => s.status === 'pending' && !s.vehicleId)
     .sort((a, b) => b.urgency - a.urgency || a.createdAtTick - b.createdAtTick);
@@ -330,7 +344,7 @@ function emptyAnalytics(): WorldState['analytics'] {
   };
 }
 
-function computeAnalytics(w: WorldState): WorldState['analytics'] {
+export function computeAnalytics(w: WorldState): WorldState['analytics'] {
   const pendingSos = w.sos.filter((s) => s.status === 'pending' || s.status === 'dispatched');
   const criticalSos = pendingSos.filter((s) => s.urgency >= 9);
   const hospitalLoad = Math.round(w.hospitals.reduce((a, h) => a + h.capacityPct, 0) / Math.max(1, w.hospitals.length));

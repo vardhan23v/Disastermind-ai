@@ -1,8 +1,10 @@
 // Government Report Agent — builds the situation report from the event log.
 
 import type { AlertLevel, SitrepData, WorldState } from '@/types';
+import { hazardDefOf } from '@/hazards/definitions';
 
 export function buildSitrep(world: WorldState): SitrepData {
+  const def = hazardDefOf(world.hazard);
   const openShelters = world.shelters.filter((s) => s.openedAtTick > 0);
   const activeAmbulances = world.vehicles.filter((v) => v.kind === 'ambulance' && v.status !== 'idle').length;
   const activeBoats = world.vehicles.filter((v) => v.kind === 'boat' && v.status !== 'idle').length;
@@ -21,6 +23,7 @@ export function buildSitrep(world: WorldState): SitrepData {
 
   return {
     generatedAtTick: world.tick,
+    hazard: { id: def.id, name: def.name, icon: def.icon, category: def.category },
     timeline: world.timeline.map((e) => ({ ...e })),
     resourcesDeployed,
     sosHandled: resolvedSos.length,

@@ -48,7 +48,8 @@ describe('app shell', () => {
   it('renders the full mission-control tree without crashing', () => {
     const html = renderToString(<App />);
     expect(html).toContain('Disaster');
-    expect(html).toContain('Simulate Cyclone');
+    expect(html).toContain('Simulate');
+    expect(html).toContain('Tropical Cyclone');
     expect(html).toContain('SIMULATION / DEMO');
     expect(html).toContain('Citizen App');
     expect(html).toContain('NORMAL');
@@ -61,7 +62,8 @@ describe('app shell', () => {
 describe('feature components', () => {
   it('SimBar renders transport controls and clock', () => {
     const html = renderToString(<SimBar />);
-    expect(html).toContain('Simulate Cyclone');
+    expect(html).toContain('Simulate');
+    expect(html).toContain('Tropical Cyclone');
     expect(html).toContain('06:00');
   });
 

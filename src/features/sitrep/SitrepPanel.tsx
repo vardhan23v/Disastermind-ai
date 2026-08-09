@@ -33,8 +33,11 @@ export function SitrepPanel() {
   const d = sitrep;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div className="panel">
-        <h3>Generated at {formatClock(d.generatedAtTick * TICK_MINUTES)} · tick {d.generatedAtTick}</h3>
+      <div className="panel" style={{ borderColor: 'var(--cyan-dim, #164e63)' }}>
+        <h3>
+          {d.hazard.icon} {d.hazard.name} — Situation Report · generated at {formatClock(d.generatedAtTick * TICK_MINUTES)} · tick{' '}
+          {d.generatedAtTick}
+        </h3>
         <div className="damage-grid">
           <div className="damage-cell">
             <div className="v">{d.rescued}</div>

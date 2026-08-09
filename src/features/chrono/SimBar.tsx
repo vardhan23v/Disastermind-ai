@@ -1,8 +1,12 @@
-// Top mission-control bar: alert level, clock, simulate/reset, speed.
+// Top mission-control bar: hazard + alert level, clock, simulate/reset, speed.
 
-import { ALERT_META, DEMO_TICKS, SPEEDS } from '@/constants';
+import { ALERT_META, DEMO_TICKS, SPEEDS, TICK_MINUTES } from '@/constants';
+import { hazardDefOf } from '@/hazards/definitions';
+import { scenarioFor } from '@/hazards/registry';
 import { formatClock } from '@/utils/geo';
+import { clockSince } from '@/hazards/common';
 import { useSimulation } from '@/store/simulationStore';
+import { HazardPicker } from '@/features/hazard/HazardPicker';
 
 export function SimBar() {
   const world = useSimulation((s) => s.world);
@@ -12,8 +16,15 @@ export function SimBar() {
   const pause = useSimulation((s) => s.pause);
   const reset = useSimulation((s) => s.reset);
 
+  const def = hazardDefOf(world.hazard);
   const alert = ALERT_META[world.alert];
-  const done = world.tick >= DEMO_TICKS;
+  const scenario = scenarioFor(world.hazard);
+  const maxTicks = scenario ? scenario.definition.durationTicks : DEMO_TICKS;
+  const done = world.tick >= maxTicks;
+
+  const perTickMin = def.timeScale === 'weeks' ? 7 * 24 * 60 : def.timeScale === 'days' ? 24 * 60 : TICK_MINUTES;
+  const clock =
+    def.timeScale === 'minutes' ? formatClock(world.clockMin) : clockSince(360, world.tick, perTickMin);
 
   return (
     <header className="sim-bar">
@@ -36,11 +47,11 @@ export function SimBar() {
         }}
       >
         <span className="dot" style={{ background: alert.color, ['--pulse-color' as string]: alert.glow }} />
-        {alert.label}
+        {def.icon} {def.name} · {alert.label}
       </div>
 
       <div className="clock">
-        {formatClock(world.clockMin)}
+        {clock}
         <span className="ticks">T{world.tick}</span>
       </div>
 
@@ -50,13 +61,15 @@ export function SimBar() {
 
       <div className="spacer" />
 
+      <HazardPicker />
+
       {world.running ? (
         <button className="btn" onClick={pause}>
           ⏸ Pause
         </button>
       ) : (
         <button className="btn primary" onClick={start} disabled={done}>
-          ▶ Simulate Cyclone
+          ▶ Simulate {def.name}
         </button>
       )}
 

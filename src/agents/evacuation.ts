@@ -65,7 +65,7 @@ export function runEvacuation(world: WorldState, tick: number): AgentResult {
     }
   }
 
-  if (tick === 18) {
+  if (tick === 18 && world.hazard === 'cyclone') {
     out.messages.push({
       to: 'decision-support',
       kind: {
