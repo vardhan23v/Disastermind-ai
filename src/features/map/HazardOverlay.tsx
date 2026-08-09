@@ -10,9 +10,6 @@ export function HazardOverlay({ world }: { world: WorldState }) {
   const scenario: HazardScenario | null = useMemo(() => scenarioFor(world.hazard), [world.hazard]);
   const paints: HazardPaint[] = useMemo(
     () => scenario?.paint(world, world.tick, world.hazardMetrics) ?? [],
-    // scenario is stable per hazard; recompute when world identity changes
-    // (new tick) so paint tracks the simulation.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [scenario, world]
   );
 
